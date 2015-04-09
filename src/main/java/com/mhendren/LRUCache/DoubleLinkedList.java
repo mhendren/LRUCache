@@ -1,9 +1,6 @@
 package com.mhendren.LRUCache;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 /**
  * Created by mhendren on 4/8/2015.
@@ -19,6 +16,11 @@ public class DoubleLinkedList<E> implements List<E> {
     DoubleLinkedListNode head;
     DoubleLinkedListNode tail;
     private int nodeCount = 0;
+    private int adjustCount = 0;
+
+    synchronized void adjust() {
+        adjustCount++;
+    }
 
     @Override
     public int size() {
@@ -51,12 +53,29 @@ public class DoubleLinkedList<E> implements List<E> {
 
     @Override
     public Object[] toArray() {
-        return new Object[0];
+        Object[] array = new Object[nodeCount];
+        int idx = 0;
+        for(DoubleLinkedListNode cur = head; cur != null; cur = cur.next)
+            array[idx++] = cur.data;
+        return array;
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        return null;
+        // This implementation pretty much goes directly with java.util.LinkedList
+        // This is because I wasn't sure what the parameter did, and How to grow a
+        // generic array.
+        if (a.length < nodeCount) {
+            a = (T[])java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), nodeCount);
+        }
+        Object[] array = a;
+        int idx = 0;
+        for(DoubleLinkedListNode cur = head; cur != null; cur = cur.next)
+            array[idx++] = cur.data;
+        if (a.length > nodeCount)
+            array[nodeCount] = null;
+
+        return a;
     }
 
     @Override
@@ -68,6 +87,7 @@ public class DoubleLinkedList<E> implements List<E> {
         tail = newNode;
         if (head == null) head = newNode;
         nodeCount++;
+        adjust();
         return true;
     }
 
@@ -75,6 +95,7 @@ public class DoubleLinkedList<E> implements List<E> {
         if (node.prev != null) node.prev.next = node.next; else head = node.next;
         if (node.next != null) node.next.prev = node.prev; else tail = node.prev;
         nodeCount--;
+        adjust();
     }
 
     @Override
@@ -112,6 +133,7 @@ public class DoubleLinkedList<E> implements List<E> {
         head = null;
         tail = null;
         nodeCount = 0;
+        adjust();
     }
 
     private void checkIndex(int index, int adjust) throws IndexOutOfBoundsException {
@@ -124,24 +146,14 @@ public class DoubleLinkedList<E> implements List<E> {
         checkIndex(index, 0);
     }
 
-    private DoubleLinkedListNode findIndexByTail(int pos) {
-        DoubleLinkedListNode cur = tail;
-        for (int i = 0; i < pos; i++) {
-            if (cur.prev != null) cur = cur.prev;
-            else throw new IndexOutOfBoundsException("Index: " + (nodeCount - pos + i - 1) + ", No prev on Node");
-        }
-        return cur;
-    }
-
     private DoubleLinkedListNode findIndex(int index) {
         DoubleLinkedListNode cur;
         if (index >= (nodeCount >> 1)) {
             cur = tail;
-            for (int i = nodeCount; i > index; i--) {
+            for (int i = nodeCount - 1; i > index; i--) {
                 if(cur.prev != null) cur = cur.prev;
                 else throw new IndexOutOfBoundsException("Index: " + index + ", No prev on Node");
             }
-            return findIndexByTail(nodeCount - (index + 1));
         } else {
             cur = head;
             for (int i = 0; i < index; i++) {
@@ -165,6 +177,7 @@ public class DoubleLinkedList<E> implements List<E> {
         DoubleLinkedListNode cur = findIndex(index);
         E data = cur.data;
         cur.data = element;
+        adjust();
         return data;
     }
 
@@ -182,6 +195,7 @@ public class DoubleLinkedList<E> implements List<E> {
             newNode.prev = cur.prev;
             cur.prev = newNode;
             nodeCount++;
+            adjust();
         }
     }
 
@@ -192,6 +206,7 @@ public class DoubleLinkedList<E> implements List<E> {
         if (cur.next != null) { cur.next.prev = cur.prev; } else { tail = cur.prev; }
         if (cur.prev != null) { cur.prev.next = cur.next; } else { head = cur.next; }
         nodeCount--;
+        adjust();
         return cur.data;
     }
 
@@ -229,14 +244,145 @@ public class DoubleLinkedList<E> implements List<E> {
         return -1;
     }
 
-    @Override
-    public ListIterator listIterator() {
-        return null;
+
+    private class LstIter implements ListIterator {
+        DoubleLinkedListNode nextNode;
+        int index = nodeCount;
+        int expectedAdjustCount = adjustCount;
+
+        @SuppressWarnings("unchecked")
+        LstIter(int index) {
+            if (index < 0 || index > nodeCount) {
+                throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + nodeCount);
+            }
+            DoubleLinkedListNode cur = null;
+            if (index != nodeCount) {
+                if (index >= (nodeCount >> 1)) {
+                    while(this.index > index) {
+                        cur = cur == null ? tail : cur.prev;
+                        this.index--;
+                    }
+                } else {
+                    this.index = 0;
+                    for (cur = head; this.index < index; cur = cur.next) {
+                        this.index++;
+                    }
+                }
+            }
+            nextNode = cur;
+        }
+
+        // Quick check for valid state, the list shouldn't have changed while the iterator is operational
+        void checkValidState() {
+            if (adjustCount != expectedAdjustCount) {
+                throw new ConcurrentModificationException("Accessing iterator with List state invalid.");
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < nodeCount;
+        }
+
+        @Override
+        public Object next() {
+            checkValidState();
+            if (index == nodeCount) {
+                throw new NoSuchElementException("Attempting to access element beyond last element in list");
+            }
+            Object data = nextNode.data;
+            nextNode = nextNode.next;
+            index++;
+            return data;
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return index > 0;
+        }
+
+        @Override
+        public Object previous() {
+            checkValidState();
+            if (index == 0) {
+                throw new NoSuchElementException("Attempting to access element before th first element in list");
+            }
+            if (nextNode == null) {
+                nextNode = tail;
+            } else {
+                nextNode = nextNode.prev;
+            }
+            index--;
+            return nextNode.data;
+        }
+
+        @Override
+        public int nextIndex() {
+            return index;
+        }
+
+        @Override
+        public int previousIndex() {
+            return index-1;
+        }
+
+        @Override
+        public void remove() {
+            checkValidState();
+            if (nextNode.prev != null) { nextNode.prev.next = nextNode.next; } else { head = nextNode.next; }
+            if (nextNode.next != null) { nextNode.next.prev = nextNode.prev; } else { tail = nextNode.prev; }
+            nextNode = nextNode.next;
+            nodeCount--;
+            adjust();
+            expectedAdjustCount++;
+        }
+
+        public void set(Object o) {
+            checkValidState();
+            if (index == nodeCount) {
+                throw new IndexOutOfBoundsException("Attempted to set value after last element in list");
+            }
+            adjust();
+            expectedAdjustCount++;
+            nextNode.data = (E)o;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void add(Object o) {
+            checkValidState();
+            DoubleLinkedListNode newNode = new DoubleLinkedListNode((E) o);
+            if (nextNode != null) {
+                newNode.prev = nextNode.prev;
+                nextNode.prev = newNode;
+            } else {
+                newNode.prev = tail;
+                if (tail != null) tail.next = newNode;
+                tail = newNode;
+            }
+            newNode.next = nextNode;
+            if (newNode.prev != null) {
+                newNode.prev.next = newNode;
+            } else {
+                head = newNode;
+            }
+            index++;
+            nodeCount++;
+            adjust();
+            expectedAdjustCount++;
+        }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public ListIterator listIterator() {
+        return new LstIter(0);
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public ListIterator listIterator(int index) {
-        return null;
+        return new LstIter(index);
     }
 
     private List subListFromTail(int start, int stop) {
