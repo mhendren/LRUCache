@@ -469,17 +469,40 @@ public class DoubleLinkedList<E> implements List<E> {
 
     @Override
     public boolean retainAll(Collection c) {
-        return false;
+        boolean adjust = false;
+        for(DoubleLinkedListNode cur = head; cur != null; cur = cur.next) {
+            if(!c.contains(cur.data)) {
+                if (cur.prev != null) { cur.prev.next = cur.next; } else { head = cur.next; }
+                if (cur.next != null) { cur.next.prev = cur.prev; } else { tail = cur.prev; }
+                nodeCount--;
+                adjust = true;
+            }
+        }
+        if(adjust) adjust();
+        return adjust;
     }
 
     @Override
     public boolean removeAll(Collection c) {
-        return false;
+        boolean adjust = false;
+        for(DoubleLinkedListNode cur = head; cur != null; cur = cur.next) {
+            if(c.contains(cur.data)) {
+                if (cur.prev != null) { cur.prev.next = cur.next; } else { head = cur.next; }
+                if (cur.next != null) { cur.next.prev = cur.prev; } else { tail = cur.prev; }
+                nodeCount--;
+                adjust = true;
+            }
+        }
+        if(adjust) adjust();
+        return adjust;
     }
 
     @Override
     public boolean containsAll(Collection c) {
-        return false;
+        for(Object data : c) {
+            if(!contains(data)) return false;
+        }
+        return true;
     }
 
 }

@@ -364,4 +364,141 @@ public class DoubleLinkedListTest {
         assertThat(stdList.get(0), is(equalTo(4)));
         assertThat(stdList.get(1), is(equalTo(5)));
     }
+
+    @Test
+    public void testRetainAllConainsNone() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(7);
+        arrayList.add(8);
+        arrayList.add(9);
+        assertThat(stdList.retainAll(arrayList), is(true));
+        assertThat(stdList.size(), is(equalTo(0)));
+    }
+
+    @Test
+    public void testRetainAllContainsAll() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(5);
+        arrayList.add(6);
+        arrayList.add(4);
+        assertThat(stdList.retainAll(arrayList), is(false));
+        assertThat(stdList.size(), is(equalTo(3)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(5)));
+        assertThat(stdList.get(2), is(equalTo(6)));
+    }
+
+
+    @Test
+    public void testRetainAllContainsOne() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(2);
+        arrayList.add(9);
+        arrayList.add(5);
+        assertThat(stdList.retainAll(arrayList), is(true));
+        assertThat(stdList.size(), is(equalTo(1)));
+        assertThat(stdList.get(0), is(equalTo(5)));
+    }
+
+    @Test
+    public void testRetainAllContainsSome() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(6);
+        arrayList.add(4);
+        arrayList.add(9);
+        assertThat(stdList.retainAll(arrayList), is(true));
+        assertThat(stdList.size(), is(equalTo(2)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(6)));
+    }
+
+    @Test
+    public void testRemoveAllContainsNone() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(7);
+        arrayList.add(8);
+        arrayList.add(9);
+        assertThat(stdList.removeAll(arrayList), is(false));
+        assertThat(stdList.size(), is(equalTo(3)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(5)));
+        assertThat(stdList.get(2), is(equalTo(6)));
+    }
+
+    @Test
+    public void testRemoveAllContainsAll() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(6);
+        arrayList.add(4);
+        arrayList.add(5);
+        assertThat(stdList.removeAll(arrayList), is(true));
+        assertThat(stdList.size(), is(equalTo(0)));
+    }
+
+    @Test
+    public void testRemoveAllContainsOne() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(8);
+        arrayList.add(9);
+        arrayList.add(5);
+        assertThat(stdList.removeAll(arrayList), is(true));
+        assertThat(stdList.size(), is(equalTo(2)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(6)));
+    }
+
+    @Test
+    public void testRemoveAllContainsSome() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(6);
+        arrayList.add(9);
+        arrayList.add(4);
+        assertThat(stdList.removeAll(arrayList), is(true));
+        assertThat(stdList.size(), is(equalTo(1)));
+        assertThat(stdList.get(0), is(equalTo(5)));
+    }
+
+    @Test
+    public void testConainsAllContainsNone() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(7);
+        arrayList.add(9);
+        arrayList.add(10);
+        assertThat(stdList.containsAll(arrayList), is(false));
+    }
+
+    @Test
+    public void testConainsAllContainsAll() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(5);
+        arrayList.add(6);
+        arrayList.add(4);
+        assertThat(stdList.containsAll(arrayList), is(true));
+    }
+
+    @Test
+    public void testConainsAllContainsAllShort() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(6);
+        arrayList.add(4);
+        assertThat(stdList.containsAll(arrayList), is(true));
+    }
+
+    @Test
+    public void testConainsAllContainsOne() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(8);
+        arrayList.add(5);
+        arrayList.add(7);
+        assertThat(stdList.containsAll(arrayList), is(false));
+    }
+
+    @Test
+    public void testConainsAllContainsSome() throws Exception {
+        ArrayList<Integer> arrayList = new ArrayList<Integer>();
+        arrayList.add(8);
+        arrayList.add(6);
+        arrayList.add(4);
+        assertThat(stdList.containsAll(arrayList), is(false));
+    }
 }
