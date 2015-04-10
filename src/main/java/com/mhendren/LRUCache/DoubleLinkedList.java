@@ -1,5 +1,7 @@
 package com.mhendren.LRUCache;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -13,7 +15,7 @@ class DoubleLinkedListNode<E> {
     DoubleLinkedListNode<E> next;
 }
 
-public class DoubleLinkedList<E> implements List<E> {
+public class DoubleLinkedList<E> extends AbstractSequentialList<E>  implements List<E>, Deque<E>, Cloneable, Serializable {
     DoubleLinkedListNode<E> head;
     DoubleLinkedListNode<E> tail;
     int nodeCount = 0;
@@ -52,6 +54,30 @@ public class DoubleLinkedList<E> implements List<E> {
         return new LstIter(0);
     }
 
+    private class DescIter implements Iterator<E> {
+        private LstIter iter = new LstIter(nodeCount);
+
+        @Override
+        public boolean hasNext() {
+            return iter.hasPrevious();
+        }
+
+        @Override
+        public E next() {
+            return (E)iter.previous();
+        }
+
+        @Override
+        public void remove() {
+            iter.remove();
+        }
+    }
+
+    @Override
+    public Iterator<E> descendingIterator() {
+        return new DescIter();
+    }
+
     @Override
     public Object[] toArray() {
         Object[] array = new Object[nodeCount];
@@ -80,6 +106,124 @@ public class DoubleLinkedList<E> implements List<E> {
     }
 
     @Override
+    public void addFirst(E e) {
+        add(0, e);
+    }
+
+    @Override
+    public void addLast(E e) {
+        add(e);
+    }
+
+    @Override
+    public boolean offerFirst(E e) {
+        add(0, e);
+        return true;
+    }
+
+    @Override
+    public boolean offerLast(E e) {
+        add(e);
+        return true;
+    }
+
+    @Override
+    public E removeFirst() {
+        if (head != null) {
+            DoubleLinkedListNode<E> node = head;
+            if (head.next != null) head.next.prev = null; else tail = null;
+            head = head.next;
+            nodeCount--;
+            adjust();
+            return node.data;
+        }
+        return null;
+    }
+
+    @Override
+    public E removeLast() {
+        if (tail != null) {
+            DoubleLinkedListNode<E> node = tail;
+            if(tail.prev != null) tail.prev.next = null; else head = null;
+            tail = tail.prev;
+            nodeCount--;
+            adjust();
+            return node.data;
+        }
+        return null;
+    }
+
+    @Override
+    public E pollFirst() {
+        if (head == null) {
+            return null;
+        }
+        return removeFirst();
+    }
+
+    @Override
+    public E pollLast() {
+        if (tail == null) {
+            return null;
+        }
+        return removeLast();
+    }
+
+    @Override
+    public E getFirst() {
+        if (head == null) {
+            throw new NoSuchElementException("The list does not have a first element");
+        }
+        return head.data;
+    }
+
+    @Override
+    public E getLast() {
+        if(tail == null) {
+            throw new NoSuchElementException("The list does not have a last element");
+        }
+        return tail.data;
+    }
+
+    @Override
+    public E peekFirst() {
+        return head != null ? head.data : null;
+    }
+
+    @Override
+    public E peekLast() {
+        return tail != null ? tail.data : null;
+    }
+
+    @Override
+    public boolean removeFirstOccurrence(Object o) {
+        for(DoubleLinkedListNode<E> cur = head; cur != null; cur = cur.next) {
+            if ((o == null && cur.data == null) || cur.data.equals(o)) {
+                if (cur.prev != null) {cur.prev.next = cur.next;} else {head = cur.next;}
+                if (cur.next != null) {cur.next.prev = cur.prev;} else {tail = cur.prev;}
+                nodeCount--;
+                adjust();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removeLastOccurrence(Object o) {
+        for(DoubleLinkedListNode<E> cur = tail; cur != null; cur = cur.prev) {
+            if ((o == null && cur.data == null) || cur.data.equals(o)) {
+                if (cur.prev != null) {cur.prev.next = cur.next;} else {head = cur.next;}
+                if (cur.next != null) {cur.next.prev = cur.prev;} else {tail = cur.prev;}
+                nodeCount--;
+                adjust();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean add(E o) {
         DoubleLinkedListNode<E> newNode = new DoubleLinkedListNode<E>(o);
         if (tail != null) { tail.next = newNode; }
@@ -90,6 +234,41 @@ public class DoubleLinkedList<E> implements List<E> {
         nodeCount++;
         adjust();
         return true;
+    }
+
+    @Override
+    public boolean offer(E e) {
+        return add(e);
+    }
+
+    @Override
+    public E remove() {
+        return removeFirst();
+    }
+
+    @Override
+    public E poll() {
+        return removeFirst();
+    }
+
+    @Override
+    public E element() {
+        return head != null ? head.data : null;
+    }
+
+    @Override
+    public E peek() {
+        return head != null ? head.data : null;
+    }
+
+    @Override
+    public void push(E e) {
+        addFirst(e);
+    }
+
+    @Override
+    public E pop() {
+        return removeFirst();
     }
 
     private void removeNode(DoubleLinkedListNode<E> node) {
@@ -198,14 +377,12 @@ public class DoubleLinkedList<E> implements List<E> {
         if (index >= (nodeCount >> 1)) {
             cur = tail;
             for (int i = nodeCount - 1; i > index; i--) {
-                if(cur.prev != null) cur = cur.prev;
-                else throw new IndexOutOfBoundsException("Index: " + index + ", No prev on Node");
+                cur = cur.prev;
             }
         } else {
             cur = head;
             for (int i = 0; i < index; i++) {
-                if (cur.next != null) cur = cur.next;
-                else throw new IndexOutOfBoundsException("Index: " + index + ", No next on Node");
+                cur = cur.next;
             }
         }
         return cur;
@@ -451,8 +628,10 @@ public class DoubleLinkedList<E> implements List<E> {
     public List subList(int fromIndex, int toIndex) throws IndexOutOfBoundsException {
         checkIndex(fromIndex);
         checkIndex(toIndex);
-        if (toIndex < fromIndex) throw new IllegalArgumentException("fromIndex: " + fromIndex + " > toIndex: " + toIndex);
-        if (nodeCount - toIndex <= fromIndex) return subListFromTail(nodeCount - toIndex - 1, nodeCount - fromIndex - 1);
+        if (toIndex < fromIndex)
+            throw new IllegalArgumentException("fromIndex: " + fromIndex + " > toIndex: " + toIndex);
+        if (nodeCount - toIndex <= fromIndex)
+            return subListFromTail(nodeCount - toIndex - 1, nodeCount - fromIndex - 1);
 
         DoubleLinkedListNode<E> cur = head;
         DoubleLinkedList<E> out = new DoubleLinkedList<E>();
@@ -506,4 +685,30 @@ public class DoubleLinkedList<E> implements List<E> {
         return true;
     }
 
+    public Object clone() throws CloneNotSupportedException {
+        DoubleLinkedList<E> myClone = (DoubleLinkedList<E>)super.clone();
+        myClone.clear();
+        for(DoubleLinkedListNode<E> cur = this.head; cur != null; cur = cur.next) {
+            myClone.add(cur.data);
+        }
+        return myClone;
+    }
+
+    private static final long serialVersionUID = 3965362453216587354L;
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(nodeCount);
+        for(DoubleLinkedListNode<E> cur = head; cur != null; cur = cur.next) {
+             out.writeObject(cur.data);
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        int nodeCount = in.readInt();
+        for(int i = 0; i < nodeCount; i++) {
+            add((E)in.readObject());
+        }
+    }
 }
