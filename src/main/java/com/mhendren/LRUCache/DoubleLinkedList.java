@@ -5,17 +5,18 @@ import java.util.*;
 /**
  * Created by mhendren on 4/8/2015.
  */
-public class DoubleLinkedList<E> implements List<E> {
-    private class DoubleLinkedListNode {
-        DoubleLinkedListNode(E data) { this.data = data; }
-        E data;
-        DoubleLinkedListNode prev;
-        DoubleLinkedListNode next;
-    };
 
-    DoubleLinkedListNode head;
-    DoubleLinkedListNode tail;
-    private int nodeCount = 0;
+class DoubleLinkedListNode<E> {
+    DoubleLinkedListNode(E data) { this.data = data; }
+    E data;
+    DoubleLinkedListNode<E> prev;
+    DoubleLinkedListNode<E> next;
+}
+
+public class DoubleLinkedList<E> implements List<E> {
+    DoubleLinkedListNode<E> head;
+    DoubleLinkedListNode<E> tail;
+    int nodeCount = 0;
     private int adjustCount = 0;
 
     synchronized void adjust() {
@@ -80,7 +81,7 @@ public class DoubleLinkedList<E> implements List<E> {
 
     @Override
     public boolean add(E o) {
-        DoubleLinkedListNode newNode = new DoubleLinkedListNode(o);
+        DoubleLinkedListNode<E> newNode = new DoubleLinkedListNode<E>(o);
         if (tail != null) { tail.next = newNode; }
         newNode.next = null;
         newNode.prev = tail;
@@ -91,7 +92,7 @@ public class DoubleLinkedList<E> implements List<E> {
         return true;
     }
 
-    private void removeNode(DoubleLinkedListNode node) {
+    private void removeNode(DoubleLinkedListNode<E> node) {
         if (node.prev != null) node.prev.next = node.next; else head = node.next;
         if (node.next != null) node.next.prev = node.prev; else tail = node.prev;
         nodeCount--;
@@ -101,14 +102,14 @@ public class DoubleLinkedList<E> implements List<E> {
     @Override
     public boolean remove(Object o) {
         if (o == null) {
-            for (DoubleLinkedListNode cur = head; cur != null; cur = cur.next) {
+            for (DoubleLinkedListNode<E> cur = head; cur != null; cur = cur.next) {
                 if (cur.data == null) {
                     removeNode(cur);
                     return true;
                 }
             }
         } else {
-            for (DoubleLinkedListNode cur = head; cur != null; cur = cur.next) {
+            for (DoubleLinkedListNode<E> cur = head; cur != null; cur = cur.next) {
                 if (cur.data.equals(o)) {
                     removeNode(cur);
                     return true;
@@ -118,12 +119,12 @@ public class DoubleLinkedList<E> implements List<E> {
         return false;
     }
 
-    private DoubleLinkedListNode newListFromCollection(Collection<E> c) {
-        DoubleLinkedListNode start = null;
-        DoubleLinkedListNode cur = null;
+    private DoubleLinkedListNode<E> newListFromCollection(Collection<E> c) {
+        DoubleLinkedListNode<E> start = null;
+        DoubleLinkedListNode<E> cur = null;
         if (c != null) {
             for (E data : c) {
-                DoubleLinkedListNode newNode = new DoubleLinkedListNode(data);
+                DoubleLinkedListNode<E> newNode = new DoubleLinkedListNode<E>(data);
                 if (cur == null) {
                     start = newNode;
                     cur = newNode;
@@ -137,8 +138,8 @@ public class DoubleLinkedList<E> implements List<E> {
         return start;
     }
 
-    private DoubleLinkedListNode findEndOfSubList(DoubleLinkedListNode start) {
-        DoubleLinkedListNode cur = start;
+    private DoubleLinkedListNode<E> findEndOfSubList(DoubleLinkedListNode start) {
+        DoubleLinkedListNode<E> cur = start;
         while(cur != null && cur.next != null) {
             cur = cur.next;
         }
@@ -147,7 +148,7 @@ public class DoubleLinkedList<E> implements List<E> {
 
     @Override
     public boolean addAll(Collection c) {
-        DoubleLinkedListNode newList = newListFromCollection(c);
+        DoubleLinkedListNode<E> newList = newListFromCollection(c);
         if(newList == null) return false;
         newList.prev = tail;
         if(tail == null) { head = newList; } else { tail.next = newList; }
@@ -161,10 +162,10 @@ public class DoubleLinkedList<E> implements List<E> {
     public boolean addAll(int index, Collection c) {
         checkIndex(index, 1);
         if(index == nodeCount) return addAll(c);
-        DoubleLinkedListNode newList = newListFromCollection(c);
+        DoubleLinkedListNode<E> newList = newListFromCollection(c);
         if (newList == null) return false;
-        DoubleLinkedListNode cur = findIndex(index);
-        DoubleLinkedListNode end = findEndOfSubList(newList);
+        DoubleLinkedListNode<E> cur = findIndex(index);
+        DoubleLinkedListNode<E> end = findEndOfSubList(newList);
         end.next = cur;
         if(cur.prev != null) {cur.prev.next = newList;} else {head = newList;}
         newList.prev = cur.prev;
@@ -192,8 +193,8 @@ public class DoubleLinkedList<E> implements List<E> {
         checkIndex(index, 0);
     }
 
-    private DoubleLinkedListNode findIndex(int index) {
-        DoubleLinkedListNode cur;
+    private DoubleLinkedListNode<E> findIndex(int index) {
+        DoubleLinkedListNode<E> cur;
         if (index >= (nodeCount >> 1)) {
             cur = tail;
             for (int i = nodeCount - 1; i > index; i--) {
@@ -213,14 +214,14 @@ public class DoubleLinkedList<E> implements List<E> {
     @Override
     public E get(int index) {
         checkIndex(index);
-        DoubleLinkedListNode cur = findIndex(index);
+        DoubleLinkedListNode<E> cur = findIndex(index);
         return cur.data;
     }
 
     @Override
     public E set(int index, E element) {
         checkIndex(index);
-        DoubleLinkedListNode cur = findIndex(index);
+        DoubleLinkedListNode<E> cur = findIndex(index);
         E data = cur.data;
         cur.data = element;
         adjust();
@@ -234,8 +235,8 @@ public class DoubleLinkedList<E> implements List<E> {
 
         if (index == nodeCount) add(element);
         else {
-            DoubleLinkedListNode newNode = new DoubleLinkedListNode(element);
-            DoubleLinkedListNode cur = findIndex(index);
+            DoubleLinkedListNode<E> newNode = new DoubleLinkedListNode<E>(element);
+            DoubleLinkedListNode<E> cur = findIndex(index);
             if (cur.prev != null) { cur.prev.next = newNode; } else { head = newNode; }
             newNode.next = cur;
             newNode.prev = cur.prev;
@@ -248,7 +249,7 @@ public class DoubleLinkedList<E> implements List<E> {
     @Override
     public E remove(int index) {
         checkIndex(index);
-        DoubleLinkedListNode cur = findIndex(index);
+        DoubleLinkedListNode<E> cur = findIndex(index);
         if (cur.next != null) { cur.next.prev = cur.prev; } else { tail = cur.prev; }
         if (cur.prev != null) { cur.prev.next = cur.next; } else { head = cur.next; }
         nodeCount--;
@@ -292,7 +293,7 @@ public class DoubleLinkedList<E> implements List<E> {
 
 
     private class LstIter implements ListIterator {
-        DoubleLinkedListNode nextNode;
+        DoubleLinkedListNode<E> nextNode;
         int index = nodeCount;
         int expectedAdjustCount = adjustCount;
 
@@ -301,7 +302,7 @@ public class DoubleLinkedList<E> implements List<E> {
             if (index < 0 || index > nodeCount) {
                 throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + nodeCount);
             }
-            DoubleLinkedListNode cur = null;
+            DoubleLinkedListNode<E> cur = null;
             if (index != nodeCount) {
                 if (index >= (nodeCount >> 1)) {
                     while(this.index > index) {
@@ -397,7 +398,7 @@ public class DoubleLinkedList<E> implements List<E> {
         @Override
         public void add(Object o) {
             checkValidState();
-            DoubleLinkedListNode newNode = new DoubleLinkedListNode((E) o);
+            DoubleLinkedListNode<E> newNode = new DoubleLinkedListNode<E>((E) o);
             if (nextNode != null) {
                 newNode.prev = nextNode.prev;
                 nextNode.prev = newNode;
@@ -432,7 +433,7 @@ public class DoubleLinkedList<E> implements List<E> {
     }
 
     private List subListFromTail(int start, int stop) {
-        DoubleLinkedListNode cur = tail;
+        DoubleLinkedListNode<E> cur = tail;
         DoubleLinkedList<E> out = new DoubleLinkedList<E>();
         int index = 0;
         while (cur != null) {
@@ -453,7 +454,7 @@ public class DoubleLinkedList<E> implements List<E> {
         if (toIndex < fromIndex) throw new IllegalArgumentException("fromIndex: " + fromIndex + " > toIndex: " + toIndex);
         if (nodeCount - toIndex <= fromIndex) return subListFromTail(nodeCount - toIndex - 1, nodeCount - fromIndex - 1);
 
-        DoubleLinkedListNode cur = head;
+        DoubleLinkedListNode<E> cur = head;
         DoubleLinkedList<E> out = new DoubleLinkedList<E>();
         int index = 0;
         while(cur != null) {
@@ -470,7 +471,7 @@ public class DoubleLinkedList<E> implements List<E> {
     @Override
     public boolean retainAll(Collection c) {
         boolean adjust = false;
-        for(DoubleLinkedListNode cur = head; cur != null; cur = cur.next) {
+        for(DoubleLinkedListNode<E> cur = head; cur != null; cur = cur.next) {
             if(!c.contains(cur.data)) {
                 if (cur.prev != null) { cur.prev.next = cur.next; } else { head = cur.next; }
                 if (cur.next != null) { cur.next.prev = cur.prev; } else { tail = cur.prev; }
@@ -485,7 +486,7 @@ public class DoubleLinkedList<E> implements List<E> {
     @Override
     public boolean removeAll(Collection c) {
         boolean adjust = false;
-        for(DoubleLinkedListNode cur = head; cur != null; cur = cur.next) {
+        for(DoubleLinkedListNode<E> cur = head; cur != null; cur = cur.next) {
             if(c.contains(cur.data)) {
                 if (cur.prev != null) { cur.prev.next = cur.next; } else { head = cur.next; }
                 if (cur.next != null) { cur.next.prev = cur.prev; } else { tail = cur.prev; }

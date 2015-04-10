@@ -8,8 +8,12 @@ import java.util.*;
  * eventually everything is in the cache.
  */
 public class LRUCache<KType, VType> {
-    Map<KType, VType> map = new HashMap<KType, VType>();
-    List<KType> list = new LinkedList<KType>();
+    private class KeyVal {
+        KType key;
+        VType val;
+    }
+    Map<KType, DoubleLinkedListNode<KeyVal>> map = new HashMap<KType, DoubleLinkedListNode<KeyVal>>();
+    DoubleLinkedList<KeyVal> list = new DoubleLinkedList<KeyVal>();
     private int capacity;
 
     LRUCache() {
@@ -20,22 +24,56 @@ public class LRUCache<KType, VType> {
         this.capacity = capacity;
     }
 
+    private void moveNodeToHead(DoubleLinkedListNode<KeyVal> node) {
+        if(node.prev != null) { node.prev.next = node.next; }
+        if(node.next != null) { node.next.prev = node.prev; } else { list.tail = node.prev; }
+        node.next = list.head;
+        node.prev = null;
+        list.head = node;
+        if(list.tail == null) list.tail = node;
+    }
+
+    private void removeTail() {
+        DoubleLinkedListNode<KeyVal> end = list.tail;
+        map.remove(end.data.key);
+        if(end.prev == null) { list.head = null; list.tail = null; }
+        else {
+            list.tail = end.prev;
+            end.prev.next = null;
+        }
+        list.nodeCount--;
+    }
+
     public synchronized void put(KType key, VType value) {
         if (map.containsKey(key)) {
-            list.remove(key);
+            DoubleLinkedListNode<KeyVal> node = map.get(key);
+            if (node != null) {
+                node.data.val = value;
+                moveNodeToHead(node);
+            }
+        } else {
+            if ((list.size() + 1) > capacity) {
+                removeTail();
+            }
+            KeyVal keyVal = new KeyVal();
+            keyVal.key = key;
+            keyVal.val = value;
+            DoubleLinkedListNode<KeyVal> node = new DoubleLinkedListNode<KeyVal>(keyVal);
+            node.next = list.head;
+            if(list.head != null) list.head.prev = node; else { list.tail = node; }
+            list.head = node;
+            list.nodeCount++;
+            map.put(key, node);
         }
-        if (list.size() + 1 > capacity) {
-            map.remove(list.remove(list.size() - 1));
-        }
-        list.add(0, key);
-        map.put(key, value);
     }
 
     public synchronized VType get(KType key) {
         if (map.containsKey(key)) {
-            list.remove(key);
-            list.add(0, key);
-            return map.get(key);
+            DoubleLinkedListNode<KeyVal> node = map.get(key);
+            if (node != null) {
+                moveNodeToHead(node);
+                return node.data.val;
+            }
         }
         return null;
     }
