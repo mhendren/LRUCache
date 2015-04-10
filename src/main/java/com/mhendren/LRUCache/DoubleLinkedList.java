@@ -48,7 +48,7 @@ public class DoubleLinkedList<E> implements List<E> {
 
     @Override
     public Iterator iterator() {
-        return null;
+        return new LstIter(0);
     }
 
     @Override
@@ -118,14 +118,60 @@ public class DoubleLinkedList<E> implements List<E> {
         return false;
     }
 
+    private DoubleLinkedListNode newListFromCollection(Collection<E> c) {
+        DoubleLinkedListNode start = null;
+        DoubleLinkedListNode cur = null;
+        if (c != null) {
+            for (E data : c) {
+                DoubleLinkedListNode newNode = new DoubleLinkedListNode(data);
+                if (cur == null) {
+                    start = newNode;
+                    cur = newNode;
+                } else {
+                    cur.next = newNode;
+                    newNode.prev = cur;
+                    cur = newNode;
+                }
+            }
+        }
+        return start;
+    }
+
+    private DoubleLinkedListNode findEndOfSubList(DoubleLinkedListNode start) {
+        DoubleLinkedListNode cur = start;
+        while(cur != null && cur.next != null) {
+            cur = cur.next;
+        }
+        return cur;
+    }
+
     @Override
     public boolean addAll(Collection c) {
-        return false;
+        DoubleLinkedListNode newList = newListFromCollection(c);
+        if(newList == null) return false;
+        newList.prev = tail;
+        if(tail == null) { head = newList; } else { tail.next = newList; }
+        tail = findEndOfSubList(newList);
+        nodeCount += c.size();
+        adjust();
+        return true;
     }
 
     @Override
     public boolean addAll(int index, Collection c) {
-        return false;
+        checkIndex(index, 1);
+        if(index == nodeCount) return addAll(c);
+        DoubleLinkedListNode newList = newListFromCollection(c);
+        if (newList == null) return false;
+        DoubleLinkedListNode cur = findIndex(index);
+        DoubleLinkedListNode end = findEndOfSubList(newList);
+        end.next = cur;
+        if(cur.prev != null) {cur.prev.next = newList;} else {head = newList;}
+        newList.prev = cur.prev;
+        cur.prev = end;
+        nodeCount += c.size();
+        adjust();
+        return true;
     }
 
     @Override

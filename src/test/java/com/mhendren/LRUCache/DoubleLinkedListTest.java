@@ -3,8 +3,7 @@ package com.mhendren.LRUCache;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -249,5 +248,120 @@ public class DoubleLinkedListTest {
         assertThat(stdList.size(), is(equalTo(2)));
         assertThat(listIterator.nextIndex(), is(equalTo(2)));
         assertThat(listIterator.previous(), is(equalTo(5)));
+    }
+
+    @Test
+    public void testAddAll() throws Exception {
+        Collection<Integer> c = new ArrayList<Integer>();
+        c.add(1);
+        c.add(2);
+        c.add(3);
+        assertThat(stdList.addAll(c), is(true));
+        assertThat(stdList.size(), is(equalTo(6)));
+        assertThat(stdList.get(3), is(equalTo(1)));
+        assertThat(stdList.get(4), is(equalTo(2)));
+        assertThat(stdList.get(5), is(equalTo(3)));
+    }
+
+    @Test
+    public void testAddAllIndexBefore() throws Exception {
+        Collection<Integer> c = new ArrayList<Integer>();
+        c.add(1);
+        c.add(2);
+        c.add(3);
+        assertThat(stdList.addAll(0, c), is(true));
+        assertThat(stdList.size(), is(equalTo(6)));
+        assertThat(stdList.get(0), is(equalTo(1)));
+        assertThat(stdList.get(1), is(equalTo(2)));
+        assertThat(stdList.get(2), is(equalTo(3)));
+        assertThat(stdList.get(3), is(equalTo(4)));
+        assertThat(stdList.get(4), is(equalTo(5)));
+        assertThat(stdList.get(5), is(equalTo(6)));
+    }
+
+    @Test
+    public void testAddAllIndexAfter() throws Exception {
+        Collection<Integer> c = new ArrayList<Integer>();
+        c.add(1);
+        c.add(2);
+        c.add(3);
+        assertThat(stdList.addAll(3, c), is(true));
+        assertThat(stdList.size(), is(equalTo(6)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(5)));
+        assertThat(stdList.get(2), is(equalTo(6)));
+        assertThat(stdList.get(3), is(equalTo(1)));
+        assertThat(stdList.get(4), is(equalTo(2)));
+        assertThat(stdList.get(5), is(equalTo(3)));
+    }
+
+    @Test
+    public void testAddAllIndexMiddle() throws Exception {
+        Collection<Integer> c = new ArrayList<Integer>();
+        c.add(1);
+        c.add(2);
+        c.add(3);
+        assertThat(stdList.addAll(2, c), is(true));
+        assertThat(stdList.size(), is(equalTo(6)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(5)));
+        assertThat(stdList.get(2), is(equalTo(1)));
+        assertThat(stdList.get(3), is(equalTo(2)));
+        assertThat(stdList.get(4), is(equalTo(3)));
+        assertThat(stdList.get(5), is(equalTo(6)));
+    }
+
+    @Test
+    public void testAddAllNothingReturnsFalse() throws Exception {
+        Collection<Integer> c = new ArrayList<Integer>();
+        assertThat(stdList.addAll(c), is(false));
+    }
+
+    @Test
+    public void testAddAllIndexedNothingReturnsFalse() throws Exception {
+        Collection<Integer> c = new ArrayList<Integer>();
+        assertThat(stdList.addAll(1, c), is(false));
+    }
+
+    @Test
+    public void testIterator() throws Exception {
+        Iterator<Integer> iterator = stdList.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        assertThat(iterator.next(), is(equalTo(4)));
+        assertThat(iterator.hasNext(), is(true));
+        assertThat(iterator.next(), is(equalTo(5)));
+        assertThat(iterator.hasNext(), is(true));
+        assertThat(iterator.next(), is(equalTo(6)));
+        assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testIteratorRemove() throws Exception {
+        Iterator<Integer> iterator = stdList.iterator();
+        iterator.next();
+        iterator.remove();
+        assertThat(stdList.size(), is(equalTo(2)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(6)));
+    }
+
+    @Test
+    public void testIteratorRemoveFirst() throws Exception {
+        Iterator<Integer> iterator = stdList.iterator();
+        iterator.remove();
+        assertThat(stdList.size(), is(equalTo(2)));
+        assertThat(stdList.get(0), is(equalTo(5)));
+        assertThat(stdList.get(1), is(equalTo(6)));
+    }
+
+    @Test
+    public void testIteratorRemoveLast() throws Exception {
+        Iterator<Integer> iterator = stdList.iterator();
+        iterator.next();
+        iterator.next();
+        iterator.remove();
+        assertThat(stdList.size(), is(equalTo(2)));
+        assertThat(stdList.get(0), is(equalTo(4)));
+        assertThat(stdList.get(1), is(equalTo(5)));
     }
 }
