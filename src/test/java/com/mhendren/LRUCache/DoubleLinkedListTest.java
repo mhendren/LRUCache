@@ -3,6 +3,10 @@ package com.mhendren.LRUCache;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -885,5 +889,24 @@ public class DoubleLinkedListTest {
         assertThat(newList.get(0), is(equalTo(4)));
         assertThat(newList.get(1), is(equalTo(5)));
         assertThat(newList.get(2), is(equalTo(6)));
+    }
+
+    @Test
+    public void testSerializationWrite() throws Exception {
+        ObjectOutputStream OS = new ObjectOutputStream(new ByteArrayOutputStream());
+        OS.writeObject(stdList);
+    }
+
+    @Test
+    public void testSerializationRead() throws Exception {
+        ByteArrayOutputStream BAOS = new ByteArrayOutputStream();
+        ObjectOutputStream OOS = new ObjectOutputStream(BAOS);
+        OOS.writeObject(stdList);
+        ObjectInputStream OIS = new ObjectInputStream(new ByteArrayInputStream(BAOS.toByteArray()));
+        DoubleLinkedList<Integer> readList = (DoubleLinkedList<Integer>) OIS.readObject();
+        assertThat(readList.size(), is(equalTo(3)));
+        assertThat(readList.get(0), is(equalTo(4)));
+        assertThat(readList.get(1), is(equalTo(5)));
+        assertThat(readList.get(2), is(equalTo(6)));
     }
 }

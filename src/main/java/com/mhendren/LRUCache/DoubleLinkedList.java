@@ -8,11 +8,13 @@ import java.util.*;
  * Created by mhendren on 4/8/2015.
  */
 
-class DoubleLinkedListNode<E> {
+class DoubleLinkedListNode<E> implements Serializable {
     DoubleLinkedListNode(E data) { this.data = data; }
     E data;
     DoubleLinkedListNode<E> prev;
     DoubleLinkedListNode<E> next;
+
+    private static final long serialVersionUID = -2697033429346313531L;
 }
 
 public class DoubleLinkedList<E> extends AbstractSequentialList<E>  implements List<E>, Deque<E>, Cloneable, Serializable {
@@ -707,6 +709,7 @@ public class DoubleLinkedList<E> extends AbstractSequentialList<E>  implements L
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         int nodeCount = in.readInt();
+        this.clear();
         for(int i = 0; i < nodeCount; i++) {
             add((E)in.readObject());
         }
