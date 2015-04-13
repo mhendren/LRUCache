@@ -44,6 +44,19 @@ public class LRUCache<KType, VType> {
         list.nodeCount--;
     }
 
+    /**
+     * O(1)
+     * Put an element into the LRU Cache.
+     *
+     * If the element was already in the cache, move its position in the access list to the top of the list. This will
+     * update the value if it was already present.
+     *
+     * If the element was not already in the present, and adding this element would make the cache too large, then the
+     * least recently used element is removed from the cache.
+     *
+     * @param key The key that is used to access the content.
+     * @param value The content that is to be accessed by the key
+     */
     public synchronized void put(KType key, VType value) {
         if (map.containsKey(key)) {
             DoubleLinkedListNode<KeyVal> node = map.get(key);
@@ -67,6 +80,12 @@ public class LRUCache<KType, VType> {
         }
     }
 
+    /**
+     * Get the contents associated with the key. If the key is located in the cache, then the position of this
+     * element will be moved to the top (as it is the furthest away from being least recently used).
+     * @param key The key to look for in the cache.
+     * @return The value associated with the key (null if the key is not presently in the cache).
+     */
     public synchronized VType get(KType key) {
         if (map.containsKey(key)) {
             DoubleLinkedListNode<KeyVal> node = map.get(key);
